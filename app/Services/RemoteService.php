@@ -37,22 +37,17 @@ class RemoteService extends Facade
         return true;
     }
     public function Connect(){
-//        Logger::Info('Ping ' . $this->host . ":" . $this->port,4);
-
         if(!$this->Ping($this->host,$this->port)){
             Logger::Info('Ping Timeout.',5);
             return false;
         }
-//        Logger::Info("Connecting...",5);
         $this->handle = @ssh2_connect($this->host,$this->port);
         if(!$this->handle){
-//            Logger::Info("Cannot Connect To Server.",6);
             return false;
         }
         return true;
     }
     public function Authorize(){
-//        Logger::Info("Authorizing...({$this->user}:{$this->password})",5);
         $ret = @ssh2_auth_password( $this->handle, $this->user, $this->password );
         return $ret;
     }
@@ -69,7 +64,6 @@ class RemoteService extends Facade
             return [$response,$errorInfo];
         }else{
             return null;
-//            Logger::Info("Cannot fetch stream.",3);
         }
     }
 
