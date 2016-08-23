@@ -26,13 +26,13 @@ class HomeController extends Controller
                 if($succ){
                     return $ssh;
                 }else{
-                    $result = "路由帐号或密码不正确.";
+                    $result = "帐号或密码不正确.";
                 }
             }else{
-                $result = "无法连接到路由.";
+                $result = "无法连接到设备.";
             }
         }else{
-            $result = "路由端口未开放.";
+            $result = "设备端口未开放.";
         }
         return $result;
     }
