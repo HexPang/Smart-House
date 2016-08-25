@@ -78,6 +78,9 @@ class HomeController extends Controller
             }else if($action == "dnsmasq"){
                 $ssh->Execute('/etc/init.d/dnsmasq restart');
                 $result = "域名服务重启完成.";
+            }else if($action == "reboot"){
+                $ssh->Execute('reboot');
+                $result = "路由重启中...";
             }
             $ssh->Disconnect();
         }
@@ -89,6 +92,7 @@ class HomeController extends Controller
             '路由相关' => [
                 '重启翻墙服务' => '?device=router&action=restart_gfw',
                 '重启域名服务' => '?device=router&action=dnsmasq',
+                '重启路由' => '?device=router&action=reboot',
             ],
             'NAS' => [
                 '挂载外接硬盘' => '?device=nas&action=mount&dev=sdb2',
