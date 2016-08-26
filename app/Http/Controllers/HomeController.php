@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
-use SSH;
+use hexpang\Client\SSHClient\SSHClient;
 
 class HomeController extends Controller
 {
@@ -17,12 +17,12 @@ class HomeController extends Controller
                 return "请配置 [ {$device}_{$conf} ] 参数.";
             }
         }
-        $ssh = new SSH(env("{$device}_IP"),env("{$device}_PORT"),env("{$device}_USER"),env("{$device}_PASSWORD"));
-        $succ = $ssh->Ping(env("{$device}_IP"),env("{$device}_PORT"));
+        $ssh = new SSHClient(env("{$device}_IP"),env("{$device}_PORT"),env("{$device}_USER"),env("{$device}_PASSWORD"));
+        $succ = $ssh->ping(env("{$device}_IP"),env("{$device}_PORT"));
         if($succ){
-            $succ = $ssh->Connect();
+            $succ = $ssh->connect();
             if($succ){
-                $succ = $ssh->Authorize();
+                $succ = $ssh->authorize();
                 if($succ){
                     return $ssh;
                 }else{
@@ -43,25 +43,25 @@ class HomeController extends Controller
             $result = $ssh;
         }else{
             if($action == 'xunlei'){
-                $ssh->Execute(env('NAS_THUNDER'));
+                $ssh->cmd(env('NAS_THUNDER'));
                 $result = "迅雷服务重启完成.";
             }else if($action == "smb"){
-                $ssh->Execute('sudo service smbd restart');
+                $ssh->cmd('sudo service smbd restart');
                 $result = "共享服务重启完成.";
             }else if($action == "minidlna") {
-                $ssh->Execute('sudo service minidlna restart');
+                $ssh->cmd('sudo service minidlna restart');
                 $result = "媒体服务重启完成.";
             }else if($action == 'mount'){
                 $device = $request ? $request->get('dev','') : '';
                 if($device == ''){
                     $device = 'sdb2';
                 }
-                $r = $ssh->Execute('sudo mount /dev/' . $device . ' /media/DOWN-DRIVE/');
+                $r = $ssh->cmd('sudo mount /dev/' . $device . ' /media/DOWN-DRIVE/');
                 $result = $r[0] ? $r[0] : $r[1];
             }else{
                 $result = "无效操作.";
             }
-            $ssh->Disconnect();
+            $ssh->disconnect();
         }
         return $result;
     }
@@ -72,17 +72,17 @@ class HomeController extends Controller
             $result = $ssh;
         }else{
             if($action == 'restart_gfw'){
-                $ssh->Execute('/etc/init.d/shadowsocks restart');
-                $ssh->Execute('/etc/init.d/pdnsd restart');
+                $ssh->cmd('/etc/init.d/shadowsocks restart');
+                $ssh->cmd('/etc/init.d/pdnsd restart');
                 $result = "翻墙服务重启完成.";
             }else if($action == "dnsmasq"){
-                $ssh->Execute('/etc/init.d/dnsmasq restart');
+                $ssh->cmd('/etc/init.d/dnsmasq restart');
                 $result = "域名服务重启完成.";
             }else if($action == "reboot"){
-                $ssh->Execute('reboot');
+                $ssh->cmd('reboot');
                 $result = "路由重启中...";
             }
-            $ssh->Disconnect();
+            $ssh->disconnect();
         }
         return $result;
     }
