@@ -14,15 +14,23 @@ class HomeController extends Controller
         $config = ['IP','PORT','USER','PASSWORD'];
         foreach($config as $conf){
             if(env("{$device}_{$conf}") == null){
-                return "请配置 [ {$device}_{$conf} ] 参数.";
+              if($conf == 'PASSWORD'){
+                if(env("{$device}_PK") == null){
+                  return "请配置 [ {$device}_{$conf} ] 参数.";
+                }
+              }
             }
         }
         $ssh = new SSHClient(env("{$device}_IP"),env("{$device}_PORT"),env("{$device}_USER"),env("{$device}_PASSWORD"));
-        $succ = $ssh->ping(env("{$device}_IP"),env("{$device}_PORT"));
+        $succ = $ssh->ping(env("{$device}_IP"),env("{$device}_PORT"),5);
         if($succ){
             $succ = $ssh->connect();
             if($succ){
-                $succ = $ssh->authorize();
+                if(env("{$device}_PK")){
+                    $succ = $ssh->authorizeWithPK(env("{$device}_PK"));
+                }else{
+                    $succ = $ssh->authorize();
+                }
                 if($succ){
                     return $ssh;
                 }else{
@@ -32,84 +40,44 @@ class HomeController extends Controller
                 $result = "无法连接到设备.";
             }
         }else{
-            $result = "设备端口未开放.";
+            $result = "连接设备超时.";
         }
         return $result;
     }
-    private function NAS($action,$request = null){
-        $result = "";
-        $ssh = $this->GetSSH('NAS');
-        if(is_string($ssh)){
-            $result = $ssh;
-        }else{
-            if($action == 'xunlei'){
-                $ssh->cmd(env('NAS_THUNDER'));
-                $result = "迅雷服务重启完成.";
-            }else if($action == "smb"){
-                $ssh->cmd('sudo service smbd restart');
-                $result = "共享服务重启完成.";
-            }else if($action == "minidlna") {
-                $ssh->cmd('sudo service minidlna restart');
-                $result = "媒体服务重启完成.";
-            }else if($action == 'mount'){
-                $device = $request ? $request->get('dev','') : '';
-                if($device == ''){
-                    $device = 'sdb2';
-                }
-                $r = $ssh->cmd('sudo mount /dev/' . $device . ' /media/DOWN-DRIVE/');
-                $result = $r;
-            }else{
-                $result = "无效操作.";
-            }
-            $ssh->disconnect();
-        }
-        return $result;
+    private function loadMenus(){
+      $file = \File::get(storage_path('config/config.json'));
+      $menus = json_decode($file,true);
+      return $menus;
     }
-    private function Router($action){
-        $result = "";
-        $ssh = $this->GetSSH('ROUTER');
-        if(is_string($ssh)){
-            $result = $ssh;
-        }else{
-            if($action == 'restart_gfw'){
-                $ssh->cmd('/etc/init.d/shadowsocks restart');
-                $ssh->cmd('/etc/init.d/pdnsd restart');
-                $result = "翻墙服务重启完成.";
-            }else if($action == "dnsmasq"){
-                $ssh->cmd('/etc/init.d/dnsmasq restart');
-                $result = "域名服务重启完成.";
-            }else if($action == "reboot"){
-                $ssh->cmd('reboot');
-                $result = "路由重启中...";
+    private function execute(Request $request,$menus){
+      $ssh = $this->GetSSH($request->device);
+      $result = null;
+      if(is_string($ssh)){
+        $result = $ssh;
+      }else{
+        $menu = $menus['groups'][$request->group][$request->index];
+        foreach($menu['command'] as $cmd){
+          $command = null;
+          if(is_string($cmd)){
+            $command = $cmd;
+          }else{
+            if(isset($cmd['env'])){
+              $command = env($cmd['env']);
             }
-            $ssh->disconnect();
+          }
+          $result = $ssh->cmd($command);
+          $ssh->disconnect();
         }
-        return $result;
+      }
+      return $result;
     }
     public function index(Request $request){
         $result = null;
-        $actions = [
-            '路由相关' => [
-                '重启翻墙服务' => '?device=router&action=restart_gfw',
-                '重启域名服务' => '?device=router&action=dnsmasq',
-                '重启路由' => '?device=router&action=reboot',
-            ],
-            'NAS' => [
-                '挂载外接硬盘' => '?device=nas&action=mount&dev=sdb2',
-                '重启迅雷服务' => '?device=nas&action=xunlei',
-                '重启共享服务' => '?device=nas&action=smb',
-                '重启媒体服务' => '?device=nas&action=minidlna',
-            ]
-        ];
+        $menus = $this->loadMenus();
         $action = $request->get('action','');
-        $device = $request->get('device','');
-        if($device == 'router'){
-            $result = $this->Router($action);
-        }else if($device == 'nas'){
-            $result = $this->NAS($action);
-        }else if($device != '' && $action != ''){
-            $result = "无效设备.";
+        if($action){
+          $result = $this->execute($request,$menus);
         }
-        return view('index',['actions' => $actions,'result' => $result]);
+        return view('index',['menus' => $menus,'result' => $result]);
     }
 }
