@@ -66,6 +66,7 @@ class HomeController extends Controller
             }
           }
           $result = $ssh->cmd($command);
+          $result = $result ? $result : $ssh->error;
           $ssh->disconnect();
         }
       }
@@ -75,6 +76,7 @@ class HomeController extends Controller
         $result = null;
         $menus = $this->loadMenus();
         $action = $request->get('action','');
+        $error = null;
         if($action){
           $result = $this->execute($request,$menus);
         }
