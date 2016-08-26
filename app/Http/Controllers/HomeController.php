@@ -57,7 +57,7 @@ class HomeController extends Controller
                     $device = 'sdb2';
                 }
                 $r = $ssh->cmd('sudo mount /dev/' . $device . ' /media/DOWN-DRIVE/');
-                $result = $r[0] ? $r[0] : $r[1];
+                $result = $r;
             }else{
                 $result = "无效操作.";
             }
