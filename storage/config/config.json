@@ -1,0 +1,50 @@
+{
+  "groups" : {
+    "路由相关" : [
+        {
+        "title": "重启翻墙服务",
+        "action":"restart_gfw",
+        "config_device":"ROUTER",
+        "command":["/etc/init.d/shadowsocks restart","/etc/init.d/pdnsd restart"]
+        },
+        {
+        "title": "重启域名服务",
+        "action":"restart_dnsmasq",
+        "config_device":"ROUTER",
+        "command":["/etc/init.d/dnsmasq restart"]
+        },
+        {
+        "title": "重启路由",
+        "action":"restart",
+        "config_device":"ROUTER",
+        "command":["reboot"]
+        }
+    ],
+    "NAS": [
+      {
+        "title": "挂载外接硬盘",
+        "action":"mount",
+        "config_device":"NAS",
+        "command":["sudo mount /dev/sdb2/media/DOWN-DRIVE/"]
+      },
+      {
+        "title": "重启迅雷服务",
+        "action":"restart_thunder",
+        "config_device":"NAS",
+        "command":[{"env":"NAS_THUNDER"}]
+      },
+      {
+        "title": "重启共享服务",
+        "action":"restart_smb",
+        "config_device":"NAS",
+        "command":["/etc/init.d/smbd restart"]
+      },
+      {
+        "title": "重启媒体服务",
+        "action":"restart_minidlna",
+        "config_device":"NAS",
+        "command":["/etc/init.d/smbd minidlna"]
+      }
+    ]
+  }
+}
