@@ -11,14 +11,14 @@
                 </div>
             </div>
         @endif
-        @foreach($actions as $title=>$actionGroup)
+        @foreach($menus['groups'] as $title=>$actionGroup)
             <div class="by">
                 <h4 class="ty">
                     {{ $title }}
                 </h4>
-                @foreach($actionGroup as $actionName => $url)
+                @foreach($actionGroup as $index=>$action)
                     <div class="ph">
-                        <a href="{{ $url }}">{{ $actionName }}</a>
+                        <a href="?group={{ $title }}&index={{ $index }}&device={{ $action['config_device'] }}&action={{ $action['action'] }}">{{ $action['title'] }}</a>
                     </div>
                 @endforeach
             </div>
