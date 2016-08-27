@@ -8,7 +8,7 @@
                 </h4>
                 <div class="ph alert-info">
                     @foreach($result['command'] as $index=>$cmd)
-                    <label>[{{ $cmd }}]($result['result'][$index][0])($result['result'][$index][1]) </label>
+                    <label>{{ $cmd }} @if($result['result'][$index][0])({{ $result['result'][$index][0] }})@endif @if($result['result'][$index][1])({{ $result['result'][$index][1] }})@endif </label>
                     @endforeach
                 </div>
             </div>
