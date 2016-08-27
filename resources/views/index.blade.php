@@ -7,7 +7,9 @@
                     提示信息
                 </h4>
                 <div class="ph alert-info">
-                    <label>{{ $result }}</label>
+                    @foreach($result['command'] as $index=>$cmd)
+                    <label>[{{ $cmd }}]($result['result'][$index][0])($result['result'][$index][1]) </label>
+                    @endforeach
                 </div>
             </div>
         @endif
