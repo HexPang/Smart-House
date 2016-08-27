@@ -52,7 +52,7 @@ class HomeController extends Controller
     private function execute(Request $request,$menus){
       $ssh = $this->GetSSH($request->device);
       $result = [];
-      $cmd = [];
+      $r_cmd = [];
       if(is_string($ssh)){
         $result = $ssh;
       }else{
@@ -67,13 +67,13 @@ class HomeController extends Controller
               $command = env($cmd['env']);
             }
           }
-          $cmd[] = $command;
+          $r_cmd[] = $command;
           $r = $ssh->cmd($command);
           $result[] = [$r,$ssh->error];
           $ssh->disconnect();
         }
       }
-      return ['command'=>$cmd,'result'=>$result];
+      return ['command'=>$r_cmd,'result'=>$result];
     }
     public function index(Request $request){
         $result = null;
